@@ -1,0 +1,36 @@
+name: ROMENCE — Screener Auto
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  screener:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer dépendances
+        run: pip install yfinance pandas numpy requests
+
+      - name: Lancer le screener ROMENCE
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python screener_auto.py
+
+      - name: Commit et push fiche.html
+        run: |
+          git config user.name  "ROMENCE Bot"
+          git config user.email "bot@romence.local"
+          git add fiche.html
+          git diff --cached --quiet || git commit -m "Screener $(date '+%d/%m/%Y %H:%M UTC')"
+          git push
